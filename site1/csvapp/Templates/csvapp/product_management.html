@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản Lý Sản Phẩm</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f2f5;
+            color: #333;
+        }
+
+        /* Header */
+        .header {
+            height: 100px;
+            background-color: rgba(0, 51, 102, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            position: relative;
+            z-index: 2;
+        }
+
+        .header h1 {
+            font-size: 26px;
+            font-weight: bold;
+        }
+
+        /* Navbar */
+        .navbar {
+            background-color: #f0f2f5;
+            width: 220px;
+            padding-top: 20px;
+            position: fixed;
+            top: 100px;
+            left: 0;
+            height: calc(100% - 100px);
+            box-shadow: 2px 0 8px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .navbar ul {
+            list-style-type: none;
+            width: 100%;
+        }
+
+        .navbar ul li {
+            width: 100%;
+        }
+
+        .navbar ul li a {
+            color: #333;
+            text-decoration: none;
+            font-size: 18px;
+            font-weight: 500;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            text-align: left;
+            transition: background-color 0.3s, color 0.3s;
+            border-radius: 8px;
+            margin: 8px 0;
+        }
+
+        .navbar ul li a i {
+            margin-right: 10px;
+        }
+
+        .navbar ul li a:hover {
+            background-color: #4a69bd;
+            color: #ffffff;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 15px 0;
+            background: #333;
+            color: #fff;
+            position: fixed;
+            width: 100%;
+            bottom: 0;
+            z-index: 1;
+        }
+
+        .product-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr); /* Hiển thị 3 sản phẩm mỗi hàng */
+            gap: 20px; /* Khoảng cách giữa các sản phẩm */
+            margin-top: 20px;
+        }
+
+        .product-card {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .product-image-container {
+            position: relative;
+            margin-bottom: 15px;
+        }
+
+        .product-image {
+            width: 100%;
+            height: auto;
+            max-height: 200px;
+            object-fit: cover;
+            border-radius: 5px;
+        }
+
+        .delete-image {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background-color: rgba(255, 0, 0, 0.7);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            padding: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            display: none;
+        }
+
+        .product-image-container:hover .delete-image {
+            display: block;
+        }
+
+        .product-details {
+            text-align: left;
+            margin-bottom: 10px;
+        }
+
+        .btn {
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <h1>Nhóm 6 - Thực tập cơ sở ngành</h1>
+        </div>
+    </header>
+
+    <!-- Navbar with Icons -->
+    <nav class="navbar">
+        <ul>
+            <li><a href="{% url 'trangchu' %}"><i class="fas fa-home"></i> Về trang chủ</a></li>
+            <li><a href="{% url 'product_management' %}"><i class="fas fa-cogs"></i> Quản lý Sản phẩm</a></li>
+            <li><a href="{% url 'location_management' %}"><i class="fas fa-list-alt"></i> Quản lý Danh mục sản phẩm</a></li>
+            <li><a href="{% url 'upload_files' %}"><i class="fas fa-upload"></i> Báo cáo Doanh thu</a></li>
+            <li><a href="{% url 'supplier_management' %}"><i class="fas fa-truck"></i> Quản lý Nhà cung cấp</a></li>
+            <li><a href="{% url 'warehouse_entry_list' %}"><i class="fas fa-boxes"></i> Quản lý nhập kho</a></li>
+            <li><a href="{% url 'warehouse_exit_list' %}"><i class="fas fa-exchange-alt"></i> Quản lý xuất kho</a></li>
+        </ul>
+    </nav>
+
+    <div class="container mt-5" style="margin-left: 240px;">
+        <h2>Quản Lý Sản Phẩm</h2>
+        <a href="{% url 'add_product' %}" class="btn btn-primary mb-3">Thêm Sản Phẩm Mới</a>
+
+        <div class="product-container">
+            {% for product in products %}
+            <div class="product-card">
+                <div class="product-image-container">
+                    {% if product.images.first %}
+                        <img src="{{ product.images.first.image.url }}" alt="Hình ảnh của {{ product.name }}" class="product-image">
+                        <button class="delete-image" data-product-id="{{ product.id }}" data-image-id="{{ product.images.first.id }}">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    {% else %}
+                        <p>Không có hình ảnh.</p>
+                    {% endif %}
+                </div>
+                <div class="product-details">
+                    <strong>Tên Sản Phẩm:</strong> {{ product.name }}<br>
+                    <strong>Mô Tả:</strong> {{ product.description }}<br>
+                    <strong>Giá:</strong> {{ product.price }} đ<br>
+                    <strong>Số Lượng:</strong> {{ product.quantity }}<br>
+                    <strong>Nhà Cung Cấp:</strong> {{ product.supplier.name }}<br>
+                    <strong>Vị Trí:</strong> {{ product.location.name }}<br>
+                </div>
+                <a href="{% url 'edit_product' product.id %}" class="btn btn-warning btn-sm">
+                    <i class="fas fa-edit"></i> Sửa
+                </a>
+                <button class="btn btn-danger btn-sm delete-product" data-id="{{ product.id }}">
+                    <i class="fas fa-trash"></i> Xóa
+                </button>
+                <a href="{% url 'add_product_image' product.id %}" class="btn btn-primary btn-sm">Thêm Hình Ảnh</a>
+            </div>
+            {% endfor %}
+        </div>
+
+        <a href="{% url 'trangchu' %}" class="btn btn-secondary mt-3">Quay lại Trang Chủ</a>
+    </div>
+
+    <footer>
+        <p>&copy; 2024 Warehouse Management System. All rights reserved.</p>
+    </footer>
+
+    <script>
+        // Xử lý xóa sản phẩm
+        document.querySelectorAll('.delete-product').forEach(button => {
+            button.addEventListener('click', function(event) {
+                const productId = event.target.getAttribute('data-id');
+                if (confirm('Bạn có chắc chắn muốn xóa sản phẩm này?')) {
+                    // Gửi yêu cầu xóa sản phẩm về backend
+                    window.location.href = `/products/delete/${productId}/`;
+                }
+            });
+        });
+
+        document.querySelectorAll('.delete-image').forEach(button => {
+            button.addEventListener('click', function(event) {
+                const productId = event.target.getAttribute('data-product-id');
+                const imageId = event.target.getAttribute('data-image-id');
+                if (productId && imageId && confirm('Bạn có chắc chắn muốn xóa hình ảnh này?')) {
+                    // Gửi yêu cầu xóa hình ảnh về backend
+                    window.location.href = `/products/${productId}/delete_image/${imageId}/`;
+                } 
+            });
+        });
+    </script>
+</body>
+</html>

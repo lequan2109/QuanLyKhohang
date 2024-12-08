@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Danh Sách Nhập Kho</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .btn {
+            display: inline-block;
+            padding: 10px 15px;
+            background-color: #28a745;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+        .btn:hover {
+            background-color: #218838;
+        }
+        .alert {
+            padding: 10px;
+            background-color: #f1c40f;
+            color: #333;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 16px;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            color: #333;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+        ul {
+            padding-left: 20px;
+            margin: 0;
+        }
+        a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        select {
+            padding: 5px;
+            font-size: 14px;
+        }
+        button {
+            padding: 5px 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+    <script>
+        // JavaScript để xử lý sự thay đổi trạng thái
+        function handleStatusChange(selectElement) {
+            const selectedStatus = selectElement.value;
+
+            // Lấy tất cả các tùy chọn trong dropdown
+            const options = selectElement.querySelectorAll('option');
+
+            // Kiểm tra nếu chọn "Đang xử lý"
+            if (selectedStatus === 'Đang xử lý') {
+                options.forEach(option => {
+                    if (option.value === 'Chưa nhập') {
+                        option.disabled = true;  // Không thể chọn "Chưa nhập"
+                    } else if (option.value === 'Đã nhập') {
+                        option.disabled = false; // Cho phép chọn "Đã nhập"
+                    }
+                });
+            }
+            // Kiểm tra nếu chọn "Đã nhập"
+            else if (selectedStatus === 'Đã nhập') {
+                options.forEach(option => {
+                    if (option.value === 'Đang xử lý') {
+                        option.disabled = true;  // Không thể chọn "Đang xử lý"
+                    } else if (option.value === 'Chưa nhập') {
+                        option.disabled = true; // Không thể chọn "Chưa nhập"
+                    }
+                });
+            }
+            // Nếu chọn "Chưa nhập"
+            else {
+                options.forEach(option => {
+                    option.disabled = false;  // Cho phép chọn tất cả các trạng thái
+                });
+            }
+        }
+
+        // Đảm bảo trạng thái được vô hiệu hóa khi tải trang
+        window.onload = function() {
+            const statusSelects = document.querySelectorAll('select[name="status"]');
+            statusSelects.forEach(select => handleStatusChange(select));
+        };
+    </script>
+</head>
+<body>
+    <h1>Danh Sách Nhập Kho</h1>
+
+    <div>
+        <a href="{% url 'warehouse_entry' %}" class="btn">Nhập Kho Mới</a>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+
+    <table>
+        <thead>
+            <tr>
+                <th>Ngày Nhập</th>
+                <th>Nhà Cung Cấp</th>
+                <th>Tổng Số Lượng</th>
+                <th>Sản Phẩm</th>
+                <th>Trạng Thái</th>
+                <th>Thao Tác</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for entry in entries %}
+                <tr>
+                    <td>{{ entry.entry_date }}</td>
+                    <td>{{ entry.supplier.name }}</td>
+                    <td>{{ entry.total_quantity }}</td>
+                    <td>
+                        <ul>
+                            {% for entry_product in entry.entry_products.all %}
+                                <li>{{ entry_product.product.name }}: {{ entry_product.quantity }}</li>
+                            {% endfor %}
+                        </ul>
+                    </td>
+                    <td>
+                        <form method="post" action="{% url 'update_status' entry.id %}">
+                            {% csrf_token %}
+                            <select name="status" onchange="handleStatusChange(this)">
+                                <option value="Chưa nhập" {% if entry.status == 'Chưa nhập' %}selected{% endif %}>Chưa nhập</option>
+                                <option value="Đang xử lý" {% if entry.status == 'Đang xử lý' %}selected{% endif %}>Đang xử lý</option>
+                                <option value="Đã nhập" {% if entry.status == 'Đã nhập' %}selected{% endif %}>Đã nhập</option>
+                            </select>
+                            <button type="submit">Cập nhật trạng thái</button>
+                        </form>
+                    </td>
+                    <td>
+                        {% if entry.status == 'Chưa nhập' %}
+                            <a href="{% url 'edit_warehouse_entry' entry.id %}">Sửa</a> | 
+                            <a href="{% url 'delete_warehouse_entry' entry.id %}">Xóa</a>
+                        {% else %}
+                            <span>Không thể sửa/xóa</span>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="6" style="text-align: center;">Không có dữ liệu nhập kho nào.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>
